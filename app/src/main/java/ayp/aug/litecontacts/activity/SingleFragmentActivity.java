@@ -20,6 +20,6 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
         setContentView(getLayoutResId());
     }
 
-    protected abstract Fragment onCreatFragment();
+    protected abstract Fragment onCreateFragment();
 
 }
