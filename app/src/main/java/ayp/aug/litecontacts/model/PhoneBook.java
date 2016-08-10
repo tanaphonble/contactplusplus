@@ -81,6 +81,7 @@ public class PhoneBook {
         return contact;
     }
 
+
     public List<Contact> getContacts() {
         List<Contact> contacts = new ArrayList<>();
         ContactCursorWrapper contactCursorWrapper = queryContact(null, null);
@@ -104,9 +105,16 @@ public class PhoneBook {
         return new File(externalFilePictureDir, photoFileName);
     }
 
-
     public void addContact(Contact contact) {
         ContentValues contentValues = getContentValues(contact);
         database.insert(ContactTable.NAME, null, contentValues);
+    }
+
+
+    public void updateContact(Contact contact){
+        String uuidString = contact.getUuid().toString();
+        String[] whereArgs = {uuidString};
+        ContentValues contentValues = getContentValues(contact);
+        database.update(ContactTable.NAME, contentValues, ContactTable.Columns.UUID + "=?", whereArgs);
     }
 }
