@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="ayp.aug.litecontacts">
 
+    <uses-permission android:name="android.permission.CALL_PHONE"/>
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
@@ -19,6 +20,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".activity.DetailContactActivity"
+            android:parentActivityName=".activity.ContactListActivity"/>
     </application>
 
 </manifest>

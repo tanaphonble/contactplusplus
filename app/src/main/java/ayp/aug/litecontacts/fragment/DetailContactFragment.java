@@ -91,7 +91,7 @@ public class DetailContactFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                contactNameEditText.setText(charSequence.toString());
+                contact.setName(charSequence.toString());
             }
 
             @Override
@@ -111,7 +111,7 @@ public class DetailContactFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                contactNumberEditText.setText(charSequence.toString());
+                contact.setNumber(charSequence.toString());
             }
 
             @Override
@@ -131,7 +131,7 @@ public class DetailContactFragment extends Fragment {
 
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                contactEmailEditText.setText(charSequence.toString());
+                contact.setEmail(charSequence.toString());
             }
 
             @Override

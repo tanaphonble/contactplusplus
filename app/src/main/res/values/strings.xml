@@ -5,4 +5,5 @@
     <string name="contact_email">Email</string>
     <string name="delete_contact">DELETE</string>
     <string name="new_contact">New Contact</string>
+    <string name="denied_permission_to_call">Cannot call phone without permission</string>
 </resources>

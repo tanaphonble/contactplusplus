@@ -1,13 +1,21 @@
 package ayp.aug.litecontacts.fragment;
 
+import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -17,11 +25,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.util.List;
 
 import ayp.aug.litecontacts.R;
+import ayp.aug.litecontacts.activity.DetailContactActivity;
 import ayp.aug.litecontacts.model.Contact;
 import ayp.aug.litecontacts.model.PhoneBook;
 import ayp.aug.litecontacts.model.PictureUtils;
@@ -30,14 +40,19 @@ import ayp.aug.litecontacts.model.PictureUtils;
  * Created by Tanaphon on 8/9/2016.
  */
 public class ContactListFragment extends Fragment {
-
     private static final int gridViewSpanSizeLandScape = 2;
     private static final int gridViewSpanSizePortrait = 3;
+    private static final int REQUEST_CALL_ACTION = 4;
     private RecyclerView contactRecyclerView;
     private ContactAdapter contactAdapter;
     private PhoneBook phoneBook;
     private GridLayoutManager gridLayoutManager;
     private boolean isWideWidth;
+    private Callbacks callbacks;
+
+    public interface Callbacks {
+        public void onContactSelected(Contact contact);
+    }
 
     public static ContactListFragment newInstance() {
 
@@ -45,6 +60,23 @@ public class ContactListFragment extends Fragment {
         ContactListFragment fragment = new ContactListFragment();
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CALL_ACTION:
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+
+                } else {
+                    Toast.makeText(getActivity(), R.string.denied_permission_to_call,
+                            Toast.LENGTH_SHORT)
+                            .show();
+                }
+                return;
+        }
     }
 
     @Nullable
@@ -61,10 +93,23 @@ public class ContactListFragment extends Fragment {
         return v;
     }
 
+
     private int getGridViewSpanSize() {
         if (isWideWidth)
             return gridViewSpanSizeLandScape;
         return gridViewSpanSizePortrait;
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callbacks = (Callbacks) context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callbacks = null;
     }
 
     @Override
@@ -116,12 +161,14 @@ public class ContactListFragment extends Fragment {
             isWideWidth = false;
     }
 
+
     private class ContactHolder extends RecyclerView.ViewHolder
-            implements View.OnClickListener {
+            implements View.OnClickListener, View.OnLongClickListener {
         PhoneBook phoneBook = PhoneBook.getInstance(getActivity());
         File contactPhotoFile;
         ImageView contactPhotoImageView;
         TextView contactNameTextView;
+        Contact contact;
 
         public ContactHolder(View itemView) {
             super(itemView);
@@ -129,12 +176,16 @@ public class ContactListFragment extends Fragment {
                     (ImageView) itemView.findViewById(R.id.list_item_contact_photo_image_view);
             contactNameTextView =
                     (TextView) itemView.findViewById(R.id.list_item_contact_name_text_view);
+            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         public void bind(Contact contact) {
+            this.contact = contact;
 
             // set photo for contact holder
             contactPhotoFile = phoneBook.getPhotoFile(contact.getPhotoFileName());
+
             Bitmap contactPhotoBitmap = PictureUtils
                     .getScaledBitmap(contactPhotoFile.getPath(), getActivity());
             contactPhotoImageView.setImageBitmap(contactPhotoBitmap);
@@ -146,12 +197,41 @@ public class ContactListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-
+            callPhoneWrapper();
         }
+
+
+        private void callPhoneWrapper() {
+            int hasWriteCallPhonePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CALL_PHONE);
+            if (hasWriteCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(new String[]{
+                                Manifest.permission.CALL_PHONE},
+                        REQUEST_CALL_ACTION);
+                return;
+            }
+            callPhone(contact.getNumber());
+        }
+
+        public void callPhone(String contactNumber){
+            try {
+                Intent intentCall = new Intent(Intent.ACTION_CALL);
+                intentCall.setData(Uri.parse("tel:" + contactNumber));
+                startActivityForResult(intentCall, REQUEST_CALL_ACTION);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View view) {
+            callbacks.onContactSelected(contact);
+            return false;
+        }
+
+
     }
 
-    private class ContactAdapter extends RecyclerView.Adapter<ContactHolder>
-            implements View.OnClickListener, View.OnLongClickListener {
+    private class ContactAdapter extends RecyclerView.Adapter<ContactHolder> {
 
         private List<Contact> contacts;
 
@@ -175,16 +255,6 @@ public class ContactListFragment extends Fragment {
         @Override
         public int getItemCount() {
             return contacts.size();
-        }
-
-        @Override
-        public void onClick(View view) {
-
-        }
-
-        @Override
-        public boolean onLongClick(View view) {
-            return false;
         }
 
         public void refreshContactList() {

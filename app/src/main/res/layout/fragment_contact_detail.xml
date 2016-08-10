@@ -42,8 +42,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:textStyle="bold"
+            android:text="@string/contact_name"
             tools:text="@string/contact_name" />
 
         <EditText
@@ -51,16 +52,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="30dp"
-            android:textSize="20sp"
-            android:hint="input name"
+            android:textSize="16sp"
+            android:hint="name"
             android:inputType="text" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textSize="24sp"
+            android:textSize="18sp"
             android:textStyle="bold"
+            android:text="@string/contact_telephone_number"
             tools:text="@string/contact_telephone_number" />
 
         <EditText
@@ -68,8 +70,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="30dp"
-            android:textSize="20sp"
-            android:hint=""
+            android:textSize="16sp"
+            android:hint="telephone number"
             android:inputType="text"/>
 
         <TextView
@@ -77,7 +79,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:textSize="24sp"
+            android:textSize="18sp"
+            android:text="@string/contact_email"
             tools:text="@string/contact_email" />
 
         <EditText
@@ -85,7 +88,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginRight="30dp"
-            android:textSize="20sp"
+            android:textSize="16sp"
+            android:hint="example@mail.com"
             android:inputType="textEmailAddress"/>
 
     </LinearLayout>

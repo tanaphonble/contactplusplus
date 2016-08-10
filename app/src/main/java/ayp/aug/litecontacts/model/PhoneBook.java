@@ -5,7 +5,6 @@ import ayp.aug.litecontacts.model.ContactDBSchema.ContactTable;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
-import android.database.CursorWrapper;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Environment;
 
@@ -48,6 +47,8 @@ public class PhoneBook {
     private static ContentValues getContentValues(Contact contact) {
         ContentValues contentValues = new ContentValues();
         contentValues.put(ContactTable.Columns.UUID, contact.getUuid().toString());
+
+
         contentValues.put(ContactTable.Columns.NAME, contact.getName());
         contentValues.put(ContactTable.Columns.NUMBER, contact.getNumber());
         contentValues.put(ContactTable.Columns.EMAIL, contact.getEmail());
@@ -71,7 +72,8 @@ public class PhoneBook {
         Contact contact;
         String uuidString = uuid.toString();
         String[] whereArgs = {uuidString};
-        ContactCursorWrapper contactCursorWrapper = queryContact(ContactTable.Columns.UUID + "=?", whereArgs);
+        ContactCursorWrapper contactCursorWrapper =
+                queryContact(ContactTable.Columns.UUID + "=?", whereArgs);
         try {
             contactCursorWrapper.moveToFirst();
             contact = contactCursorWrapper.getContact();
@@ -111,10 +113,13 @@ public class PhoneBook {
     }
 
 
-    public void updateContact(Contact contact){
+    public void updateContact(Contact contact) {
         String uuidString = contact.getUuid().toString();
         String[] whereArgs = {uuidString};
         ContentValues contentValues = getContentValues(contact);
-        database.update(ContactTable.NAME, contentValues, ContactTable.Columns.UUID + "=?", whereArgs);
+        database.update(ContactTable.NAME,
+                contentValues,
+                ContactTable.Columns.UUID + "=?",
+                whereArgs);
     }
 }
