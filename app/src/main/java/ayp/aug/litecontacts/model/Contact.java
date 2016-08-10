@@ -11,19 +11,21 @@ public class Contact {
     private String number;
     private String email;
 
+
+
     public Contact(){
         this(UUID.randomUUID());
     }
 
     public Contact(UUID uuid){
-        this.uuid = uuid;
+        this.setUuid(uuid);
     }
 
     public UUID getUuid() {
         return uuid;
     }
 
-    public void setUuid(UUID uuid) {
+    private void setUuid(UUID uuid) {
         this.uuid = uuid;
     }
 
@@ -49,5 +51,9 @@ public class Contact {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getPhotoFileName(){
+        return "IMG_" + this.getUuid().toString() + ".jpg";
     }
 }

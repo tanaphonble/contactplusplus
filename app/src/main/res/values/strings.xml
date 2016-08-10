@@ -1,3 +1,8 @@
 <resources>
     <string name="app_name">LiteContacts</string>
+    <string name="contact_name">Name</string>
+    <string name="contact_telephone_number">Tel.</string>
+    <string name="contact_email">Email</string>
+    <string name="delete_contact">DELETE</string>
+    <string name="new_contact">New Contact</string>
 </resources>
