@@ -2,7 +2,6 @@ package ayp.aug.litecontacts.activity;
 
 import android.support.v4.app.Fragment;
 
-import ayp.aug.litecontacts.R;
 import ayp.aug.litecontacts.fragment.ContactListFragment;
 
 /**
@@ -10,6 +9,8 @@ import ayp.aug.litecontacts.fragment.ContactListFragment;
  */
 public class ContactListActivity extends SingleFragmentActivity {
 
+
+    
     @Override
     protected Fragment onCreateFragment() {
         return ContactListFragment.newInstance();

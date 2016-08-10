@@ -107,16 +107,17 @@ public class ContactListFragment extends Fragment {
         }
     }
 
-    private void updateGridViewSpanSize(){
+    private void updateGridViewSpanSize() {
         Configuration configuration = getActivity().getResources().getConfiguration();
         int screenWidth = configuration.screenWidthDp;
-        if(screenWidth >= 600)
+        if (screenWidth >= 600)
             isWideWidth = true;
         else
             isWideWidth = false;
     }
 
-    private class ContactHolder extends RecyclerView.ViewHolder {
+    private class ContactHolder extends RecyclerView.ViewHolder
+            implements View.OnClickListener {
         PhoneBook phoneBook = PhoneBook.getInstance(getActivity());
         File contactPhotoFile;
         ImageView contactPhotoImageView;
@@ -141,6 +142,11 @@ public class ContactListFragment extends Fragment {
 
             // set name for contact holder
             contactNameTextView.setText(contact.getName());
+        }
+
+        @Override
+        public void onClick(View view) {
+
         }
     }
 

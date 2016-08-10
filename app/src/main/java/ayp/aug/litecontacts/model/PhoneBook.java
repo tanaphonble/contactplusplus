@@ -12,6 +12,7 @@ import android.os.Environment;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Created by Tanaphon on 8/9/2016.
@@ -64,6 +65,20 @@ public class PhoneBook {
                 null
         );
         return new ContactCursorWrapper(cursor);
+    }
+
+    public Contact getContactById(UUID uuid) {
+        Contact contact;
+        String uuidString = uuid.toString();
+        String[] whereArgs = {uuidString};
+        ContactCursorWrapper contactCursorWrapper = queryContact(ContactTable.Columns.UUID + "=?", whereArgs);
+        try {
+            contactCursorWrapper.moveToFirst();
+            contact = contactCursorWrapper.getContact();
+        } finally {
+            contactCursorWrapper.close();
+        }
+        return contact;
     }
 
     public List<Contact> getContacts() {
