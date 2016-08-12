@@ -22,10 +22,10 @@ public class PictureUtils {
         if (srcHeight > desHeight || srcWidth > destWidth)
             inSampleSize = srcWidth > srcHeight ? Math.round(srcHeight / srcWidth) : Math.round(srcWidth / srcHeight);
 
-        options = new BitmapFactory.Options();
-        options.inSampleSize = inSampleSize;
+        final BitmapFactory.Options _options = new BitmapFactory.Options();
+        _options.inSampleSize = inSampleSize;
 
-        return BitmapFactory.decodeFile(path, options);
+        return BitmapFactory.decodeFile(path, _options);
     }
 
     public static Bitmap getScaledBitmap(String path, Activity activity){

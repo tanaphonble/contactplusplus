@@ -11,7 +11,7 @@ import ayp.aug.litecontacts.R;
 public abstract class SingleFragmentActivity extends AppCompatActivity {
 
     @LayoutRes
-    private int getLayoutResId() {
+    public int getLayoutResId() {
         return R.layout.activity_well_fit;
     }
 
@@ -31,7 +31,6 @@ public abstract class SingleFragmentActivity extends AppCompatActivity {
                     .add(R.id.fragment_container, fragment)
                     .commit();
         }
-
     }
 
     protected abstract Fragment onCreateFragment();

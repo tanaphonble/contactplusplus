@@ -1,8 +1,11 @@
 package ayp.aug.litecontacts.fragment;
 
 import android.app.Activity;
+import android.app.ListActivity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
@@ -12,6 +15,7 @@ import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -30,17 +34,44 @@ import ayp.aug.litecontacts.model.PictureUtils;
 public class DetailContactFragment extends Fragment {
     private static final String CONTACT_UUID = "CONTACT_UUID";
     private static final int REQUEST_IMAGE_CAPTURE = 2;
-    private final Intent captureContactPhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
     private UUID contactUUID;
     private Contact contact;
     private PhoneBook phoneBook;
     private File contactPhotoFile;
+    private Callbacks callbacks;
+    final Intent captureContactPhotoIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
 
     ImageView contactPhotoImageView;
     ImageButton captureContactPhotoImageButton;
     EditText contactNameEditText;
     EditText contactNumberEditText;
     EditText contactEmailEditText;
+    Button deleteContactButton;
+
+    public interface Callbacks {
+        public void onContactDeleted();
+
+        public void onContactUpdate(Contact contact);
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    public void onAttach(Context context) {
+        super.onAttach(context);
+        callbacks = (Callbacks) context;
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        callbacks = null;
+    }
 
     public static DetailContactFragment newInstance(UUID uuid) {
 
@@ -61,27 +92,32 @@ public class DetailContactFragment extends Fragment {
     }
 
 
-    private boolean hasPermissionToTakePhoto(){
-        return captureContactPhotoIntent.resolveActivity(getActivity().getPackageManager()) != null;
+    private boolean hasPermissionToTakePhoto() {
+        return contactPhotoFile != null && captureContactPhotoIntent.resolveActivity(getActivity().getPackageManager()) != null;
     }
 
-    public void configContactPhotoImageView() {
+    private void configContactPhotoImageView() {
+
         contactPhotoFile = phoneBook.getPhotoFile(contact.getPhotoFileName());
         Bitmap bitmap = PictureUtils.getScaledBitmap(contactPhotoFile.getPath(), getActivity());
         contactPhotoImageView.setImageBitmap(bitmap);
     }
 
-    public void configCaptureContactPhotoImageButton() {
+    private void configCaptureContactPhotoImageButton() {
         captureContactPhotoImageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(hasPermissionToTakePhoto())
-                    startActivityForResult(captureContactPhotoIntent, REQUEST_IMAGE_CAPTURE);
+                if (hasPermissionToTakePhoto()) {
+                    contactPhotoFile = phoneBook.getPhotoFile(contact.getPhotoFileName());
+                    Uri uri = Uri.fromFile(contactPhotoFile);
+                    captureContactPhotoIntent.putExtra(MediaStore.EXTRA_OUTPUT, uri);
+                }
+                startActivityForResult(captureContactPhotoIntent, REQUEST_IMAGE_CAPTURE);
             }
         });
     }
 
-    public void configContactNameEditText() {
+    private void configContactNameEditText() {
         contactNameEditText.setText(contact.getName());
         contactNameEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -92,6 +128,7 @@ public class DetailContactFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
                 contact.setName(charSequence.toString());
+                updateContact();
             }
 
             @Override
@@ -101,7 +138,12 @@ public class DetailContactFragment extends Fragment {
         });
     }
 
-    public void configContactNumberEditText() {
+    private void updateContact() {
+        phoneBook.updateContact(contact);
+        callbacks.onContactUpdate(contact);
+    }
+
+    private void configContactNumberEditText() {
         contactNumberEditText.setText(contact.getNumber());
         contactNumberEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -121,7 +163,7 @@ public class DetailContactFragment extends Fragment {
         });
     }
 
-    public void configContactEmailEditText() {
+    private void configContactEmailEditText() {
         contactEmailEditText.setText(contact.getEmail());
         contactEmailEditText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -137,6 +179,17 @@ public class DetailContactFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable editable) {
 
+            }
+        });
+    }
+
+
+    private void configDeleteContactButton() {
+        deleteContactButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                phoneBook.deleteContact(contactUUID);
+                callbacks.onContactDeleted();
             }
         });
     }
@@ -159,11 +212,13 @@ public class DetailContactFragment extends Fragment {
         contactNameEditText = (EditText) view.findViewById(R.id.contact_name_edit_text);
         contactNumberEditText = (EditText) view.findViewById(R.id.contact_number_edit_text);
         contactEmailEditText = (EditText) view.findViewById(R.id.contact_email_edit_text);
+        deleteContactButton = (Button) view.findViewById(R.id.delete_contact_button);
         configContactPhotoImageView();
         configCaptureContactPhotoImageButton();
         configContactNameEditText();
         configContactNumberEditText();
         configContactEmailEditText();
+        configDeleteContactButton();
 
         return view;
     }
@@ -171,16 +226,16 @@ public class DetailContactFragment extends Fragment {
     @Override
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(resultCode != Activity.RESULT_OK)
+        if (resultCode != Activity.RESULT_OK)
             return;
-        if(requestCode == REQUEST_IMAGE_CAPTURE)
+        if (requestCode == REQUEST_IMAGE_CAPTURE)
             updateContactPhotoView();
     }
 
     private void updateContactPhotoView() {
-        if(contactPhotoFile == null || !contactPhotoFile.exists())
+        if (contactPhotoFile == null || !contactPhotoFile.exists())
             contactPhotoImageView.setImageDrawable(null);
-        else{
+        else {
             Bitmap bitmap = PictureUtils.getScaledBitmap(contactPhotoFile.getPath(), getActivity());
             contactPhotoImageView.setImageBitmap(bitmap);
         }

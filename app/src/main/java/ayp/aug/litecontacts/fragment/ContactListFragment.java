@@ -1,22 +1,21 @@
 package ayp.aug.litecontacts.fragment;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
-import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -31,7 +30,6 @@ import java.io.File;
 import java.util.List;
 
 import ayp.aug.litecontacts.R;
-import ayp.aug.litecontacts.activity.DetailContactActivity;
 import ayp.aug.litecontacts.model.Contact;
 import ayp.aug.litecontacts.model.PhoneBook;
 import ayp.aug.litecontacts.model.PictureUtils;
@@ -43,6 +41,7 @@ public class ContactListFragment extends Fragment {
     private static final int gridViewSpanSizeLandScape = 2;
     private static final int gridViewSpanSizePortrait = 3;
     private static final int REQUEST_CALL_ACTION = 4;
+    public String contactPhoneNumberAfterAllowCallPermission;
     private RecyclerView contactRecyclerView;
     private ContactAdapter contactAdapter;
     private PhoneBook phoneBook;
@@ -53,7 +52,6 @@ public class ContactListFragment extends Fragment {
     public interface Callbacks {
         public void onContactSelected(Contact contact);
     }
-
     public static ContactListFragment newInstance() {
 
         Bundle args = new Bundle();
@@ -63,13 +61,14 @@ public class ContactListFragment extends Fragment {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CALL_ACTION:
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-
+                    callPhone(contactPhoneNumberAfterAllowCallPermission);
                 } else {
                     Toast.makeText(getActivity(), R.string.denied_permission_to_call,
                             Toast.LENGTH_SHORT)
@@ -78,6 +77,25 @@ public class ContactListFragment extends Fragment {
                 return;
         }
     }
+
+    public void callPhone(String contactNumber) {
+        try {
+            Intent intentCall = new Intent(Intent.ACTION_CALL);
+            intentCall.setData(Uri.parse("tel:" + contactNumber));
+            if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.CALL_PHONE) !=
+                    PackageManager.PERMISSION_GRANTED) {
+                contactPhoneNumberAfterAllowCallPermission =contactNumber;
+                requestPermissions(new String[]{
+                                Manifest.permission.CALL_PHONE},
+                        REQUEST_CALL_ACTION);
+                return;
+            }
+            startActivityForResult(intentCall, REQUEST_CALL_ACTION);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     @Nullable
     @Override
@@ -92,7 +110,6 @@ public class ContactListFragment extends Fragment {
         updateListUI();
         return v;
     }
-
 
     private int getGridViewSpanSize() {
         if (isWideWidth)
@@ -132,13 +149,14 @@ public class ContactListFragment extends Fragment {
             case R.id.menu_item_new_contact:
                 Contact contact = new Contact();
                 phoneBook.addContact(contact);
+                callbacks.onContactSelected(contact);
                 updateListUI();
             default:
                 return super.onOptionsItemSelected(item);
         }
     }
 
-    private void updateListUI() {
+    public void updateListUI() {
         updateGridViewSpanSize();
         PhoneBook phoneBook = PhoneBook.getInstance(getActivity());
         List<Contact> contacts = phoneBook.getContacts();
@@ -147,7 +165,7 @@ public class ContactListFragment extends Fragment {
             contactAdapter = new ContactAdapter(contacts);
             contactRecyclerView.setAdapter(contactAdapter);
         } else {
-            contactAdapter.refreshContactList();
+            contactAdapter.setContacts(phoneBook.getContacts());
             contactAdapter.notifyDataSetChanged();
         }
     }
@@ -161,6 +179,11 @@ public class ContactListFragment extends Fragment {
             isWideWidth = false;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        updateListUI();
+    }
 
     private class ContactHolder extends RecyclerView.ViewHolder
             implements View.OnClickListener, View.OnLongClickListener {
@@ -197,37 +220,14 @@ public class ContactListFragment extends Fragment {
 
         @Override
         public void onClick(View view) {
-            callPhoneWrapper();
-        }
-
-
-        private void callPhoneWrapper() {
-            int hasWriteCallPhonePermission = ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.CALL_PHONE);
-            if (hasWriteCallPhonePermission != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{
-                                Manifest.permission.CALL_PHONE},
-                        REQUEST_CALL_ACTION);
-                return;
-            }
             callPhone(contact.getNumber());
-        }
-
-        public void callPhone(String contactNumber){
-            try {
-                Intent intentCall = new Intent(Intent.ACTION_CALL);
-                intentCall.setData(Uri.parse("tel:" + contactNumber));
-                startActivityForResult(intentCall, REQUEST_CALL_ACTION);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         }
 
         @Override
         public boolean onLongClick(View view) {
             callbacks.onContactSelected(contact);
-            return false;
+            return true;
         }
-
 
     }
 
@@ -252,14 +252,18 @@ public class ContactListFragment extends Fragment {
             holder.bind(contact);
         }
 
+
+
+
         @Override
         public int getItemCount() {
             return contacts.size();
         }
 
-        public void refreshContactList() {
-            this.contacts = phoneBook.getContacts();
+        private void setContacts(List<Contact> contacts){
+            this.contacts = contacts;
         }
+
     }
 }
 

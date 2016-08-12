@@ -69,18 +69,18 @@ public class PhoneBook {
     }
 
     public Contact getContactById(UUID uuid) {
-        Contact contact;
         String uuidString = uuid.toString();
         String[] whereArgs = {uuidString};
         ContactCursorWrapper contactCursorWrapper =
                 queryContact(ContactTable.Columns.UUID + "=?", whereArgs);
         try {
+            if(contactCursorWrapper.getCount() == 0)
+                return null;
             contactCursorWrapper.moveToFirst();
-            contact = contactCursorWrapper.getContact();
+            return contactCursorWrapper.getContact();
         } finally {
             contactCursorWrapper.close();
         }
-        return contact;
     }
 
 
@@ -112,6 +112,11 @@ public class PhoneBook {
         database.insert(ContactTable.NAME, null, contentValues);
     }
 
+    public void deleteContact(UUID uuid){
+        String uuidString = uuid.toString();
+        String[] whereArgs = {uuidString};
+        database.delete(ContactTable.NAME, ContactTable.Columns.UUID + "=?", whereArgs);
+    }
 
     public void updateContact(Contact contact) {
         String uuidString = contact.getUuid().toString();

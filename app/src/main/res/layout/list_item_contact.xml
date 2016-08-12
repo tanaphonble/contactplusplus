@@ -17,7 +17,8 @@
             android:id="@+id/list_item_contact_photo_image_view"
             android:layout_width="120dp"
             android:layout_height="120dp"
-            android:background="@color/grey" />
+            android:background="@color/grey"
+            android:scaleType="centerInside"/>
 
         <TextView
             android:id="@+id/list_item_contact_name_text_view"
